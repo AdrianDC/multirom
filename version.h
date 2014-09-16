@@ -24,6 +24,6 @@
     #ifdef MR_DEVICE_SPECIFIC_VERSION
         #define VERSION_DEV_FIX MR_DEVICE_SPECIFIC_VERSION
     #else
-        #define VERSION_DEV_FIX ""
+        #define VERSION_DEV_FIX "x"
     #endif
 #endif
