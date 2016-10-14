@@ -56,6 +56,9 @@ static int copy_rd_files(UNUSED const char *path, UNUSED const char *busybox_pat
     char path_dir[64];
     char path_init[64];
     char path_main[64];
+
+    char path_adbd[64];
+    char path_busybox_enc[64];
     char path_mrom_enc[64];
     char path_mrom_fstab[64];
     char path_ueventd[64];
@@ -66,6 +69,9 @@ static int copy_rd_files(UNUSED const char *path, UNUSED const char *busybox_pat
         snprintf(path_dir, sizeof(path_dir), TMP_RD2_UNPACKED_DIR);
         snprintf(path_init, sizeof(path_init), TMP_RD2_UNPACKED_DIR "/init");
         snprintf(path_main, sizeof(path_main), TMP_RD2_UNPACKED_DIR "/main_init");
+
+        snprintf(path_adbd, sizeof(path_adbd), TMP_RD2_UNPACKED_DIR "/mrom_enc/adbd");
+        snprintf(path_busybox_enc, sizeof(path_busybox_enc), TMP_RD2_UNPACKED_DIR "/mrom_enc/busybox");
         snprintf(path_mrom_enc, sizeof(path_mrom_enc), TMP_RD2_UNPACKED_DIR "/mrom_enc");
         snprintf(path_mrom_fstab, sizeof(path_mrom_fstab), TMP_RD2_UNPACKED_DIR "/mrom.fstab");
         snprintf(path_ueventd, sizeof(path_ueventd), TMP_RD2_UNPACKED_DIR "/sbin/ueventd");
@@ -80,6 +86,9 @@ static int copy_rd_files(UNUSED const char *path, UNUSED const char *busybox_pat
             snprintf(path_init, sizeof(path_init), TMP_RD_UNPACKED_DIR "/init");
         }
         snprintf(path_main, sizeof(path_main), TMP_RD_UNPACKED_DIR "/main_init");
+
+        snprintf(path_adbd, sizeof(path_adbd), TMP_RD_UNPACKED_DIR "/mrom_enc/adbd");
+        snprintf(path_busybox_enc, sizeof(path_busybox_enc), TMP_RD_UNPACKED_DIR "/mrom_enc/busybox");
         snprintf(path_mrom_enc, sizeof(path_mrom_enc), TMP_RD_UNPACKED_DIR "/mrom_enc");
         snprintf(path_mrom_fstab, sizeof(path_mrom_fstab), TMP_RD_UNPACKED_DIR "/mrom.fstab");
         snprintf(path_ueventd, sizeof(path_ueventd), TMP_RD_UNPACKED_DIR "/sbin/ueventd");
@@ -120,7 +129,22 @@ static int copy_rd_files(UNUSED const char *path, UNUSED const char *busybox_pat
         ERROR("Failed to copy encryption files!\n");
         return -1;
     }
+
+    if (access(path_busybox_enc, F_OK) == -1 && copy_file(busybox_path, path_busybox_enc) < 0)
+    {
+        ERROR("Failed to copy busybox file!\n");
+        return -1;
+    }
+    chmod(path_busybox_enc, 0750);
+
+    if (access(path_adbd, F_OK) == -1 && copy_file("/sbin/adbd", path_adbd) < 0)
+    {
+        ERROR("Failed to copy adbd file!\n");
+        return -1;
+    }
+    chmod(path_adbd, 0750);
 #endif
+
     return 0;
 }
 

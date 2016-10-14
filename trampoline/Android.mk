@@ -68,4 +68,8 @@ ifeq ($(MR_USE_DEBUGFS_MOUNT),true)
     LOCAL_CFLAGS += -DMR_USE_DEBUGFS_MOUNT
 endif
 
+ifneq ($(MR_USE_DEBUG_ADB),)
+    LOCAL_CFLAGS += -DMR_USE_DEBUG_ADB
+endif
+
 include $(BUILD_EXECUTABLE)

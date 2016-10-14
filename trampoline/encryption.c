@@ -80,6 +80,15 @@ int encryption_before_mount(struct fstab *fstab)
     tramp_hook_encryption_setup();
 #endif
 
+#if MR_USE_DEBUG_ADB
+    INFO("mount parameters: %s, %s, %x\n", fwpart->device, fwpart->type, fwpart->mountflags);
+    if (access("/trampoline_continue", F_OK) < 0)
+    {
+        INFO("Abort the trampoline_encmnt run\n");
+        return ENC_RES_ERR;
+    }
+#endif
+
     INFO("Running trampoline_encmnt\n");
 
     strcpy(encmnt_cmd_arg, "decrypt");

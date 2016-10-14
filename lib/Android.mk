@@ -74,6 +74,10 @@ ifneq (,$(filter $(MR_NO_KEXEC), $(MR_NO_KEXEC_MK_OPTIONS)))
     LOCAL_SRC_FILES += ../no_kexec.c
 endif
 
+ifneq ($(MR_USE_DEBUG_ADB),)
+    LOCAL_CFLAGS += -DMR_USE_DEBUG_ADB
+endif
+
 include $(multirom_local_path)/device_defines.mk
 
 include $(BUILD_STATIC_LIBRARY)
@@ -96,6 +100,10 @@ ifneq (,$(filter $(MR_NO_KEXEC), $(MR_NO_KEXEC_MK_OPTIONS)))
     LOCAL_STATIC_LIBRARIES += libbootimg
     LOCAL_C_INCLUDES += system/extras/libbootimg/include
     LOCAL_SRC_FILES += ../no_kexec.c
+endif
+
+ifneq ($(MR_USE_DEBUG_ADB),)
+    LOCAL_CFLAGS += -DMR_USE_DEBUG_ADB
 endif
 
 include $(multirom_local_path)/device_defines.mk
