@@ -29,6 +29,7 @@
 #include "../lib/fstab.h"
 #include "../lib/util.h"
 #include "../lib/log.h"
+#include "../lib/input.h"
 #include "encryption.h"
 #include "../trampoline_encmnt/encmnt_defines.h"
 #include "../hooks.h"
@@ -78,6 +79,15 @@ int encryption_before_mount(struct fstab *fstab)
 
 #if MR_DEVICE_HOOKS >= 6
     tramp_hook_encryption_setup();
+#endif
+
+#if MR_USE_DEBUG_ADB
+    INFO("mount parameters: %s, %s, %x\n", fwpart->device, fwpart->type, fwpart->mountflags);
+    INFO("Blocking trampoline_encmnt until POWER key is pressed\n");
+
+    start_input_thread();
+    while(wait_for_key() != KEY_POWER);
+    stop_input_thread();
 #endif
 
     INFO("Running trampoline_encmnt\n");

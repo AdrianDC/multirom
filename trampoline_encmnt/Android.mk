@@ -30,6 +30,10 @@ LOCAL_SRC_FILES := \
     pw_ui.c \
     ../rom_quirks.c \
 
+ifeq ($(MR_USE_DEBUG_ADB),true)
+    LOCAL_CFLAGS += -DMR_USE_DEBUG_ADB
+endif
+
 include $(multirom_local_path)/device_defines.mk
 
 include $(BUILD_EXECUTABLE)

@@ -31,6 +31,7 @@
 #include "../lib/util.h"
 #include "../lib/fstab.h"
 #include "../lib/inject.h"
+#include "../lib/input.h"
 #include "../version.h"
 #include "adb.h"
 #include "../hooks.h"
@@ -124,6 +125,10 @@ static int try_mount_all_entries(struct fstab *fstab, struct fstab_part *first_d
         // su binaries on /data
         p_itr->mountflags &= ~(MS_NOSUID);
 
+#if MR_USE_DEBUG_ADB
+        INFO("try_mount_all_entries %s | %s | %s\n", p_itr->device, REALDATA, p_itr->type);
+#endif
+
         if(mount(p_itr->device, REALDATA, p_itr->type, p_itr->mountflags, p_itr->options) >= 0)
             return 0;
     }
@@ -171,6 +176,20 @@ static int mount_and_run(struct fstab *fstab)
     }
 
     mkdir(REALDATA, 0755);
+
+#if MR_USE_DEBUG_ADB
+    adb_init("/mrom_enc");
+    try_mount_all_entries(fstab, datap);
+    encryption_before_mount(fstab);
+
+    INFO("Blocking trampoline until POWER key is pressed\n");
+
+    start_input_thread();
+    while(wait_for_key() != KEY_POWER);
+    stop_input_thread();
+
+    adb_quit();
+#endif
 
     if(try_mount_all_entries(fstab, datap) < 0)
     {
