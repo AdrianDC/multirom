@@ -49,6 +49,7 @@ enum
 #define MASK_UNSUPPORTED (M(ROM_UNSUPPORTED_USB) | M(ROM_UNSUPPORTED_INT))
 #define MASK_LINUX (M(ROM_LINUX_INTERNAL) | M(ROM_LINUX_USB))
 #define MASK_KEXEC (MASK_LINUX)
+#define MAX_ROM_NAME_LEN 26
 
 enum
 {
@@ -128,6 +129,7 @@ struct multirom_status
     struct fstab *fstab;
     struct rcadditions rc;
     int is_recovery_boot;
+    char auto_boot_name[MAX_ROM_NAME_LEN+1];
 };
 
 int multirom(const char *rom_to_boot);

@@ -67,7 +67,6 @@
 #define EXFAT_BIN "exfat-fuse"
 #define INTERNAL_ROM_NAME "Internal"
 #define INTERNAL_RECOVERY_NAME "Recovery"
-#define MAX_ROM_NAME_LEN 26
 #define LAYOUT_VERSION "/data/.layout_version"
 
 #define BATTERY_CAP "/sys/class/power_supply/battery/capacity"
@@ -422,7 +421,8 @@ finish:
 #endif
     if (s.enable_kmsg_logging != 0)
         multirom_kmsg_logging(BACKUP_LATE_KLOG);
-    if (s.is_recovery_boot == RECOVERYBOOT_NONE) {
+    if (s.is_recovery_boot == RECOVERYBOOT_NONE)
+    {
         multirom_save_status(&s);
     }
     multirom_free_status(&s);
@@ -773,6 +773,7 @@ int multirom_load_status(struct multirom_status *s)
     }
 
     s->current_rom = multirom_get_rom(s, current_rom, s->curr_rom_part);
+    strncpy(s->auto_boot_name, auto_boot_rom, MAX_ROM_NAME_LEN);
     if(!s->current_rom)
     {
         ERROR("Failed to select current rom (%s, part %s), using Internal!\n", current_rom, s->curr_rom_part);
@@ -792,8 +793,14 @@ int multirom_load_status(struct multirom_status *s)
     else
     {
         s->auto_boot_rom = multirom_get_rom(s, auto_boot_rom, NULL);
-        if(!s->auto_boot_rom)
+        if (!s->auto_boot_rom)
+        {
             ERROR("Could not find rom %s to auto-boot\n", auto_boot_rom);
+        }
+        else
+        {
+            strncpy(s->auto_boot_name, s->auto_boot_rom->name, MAX_ROM_NAME_LEN);
+        }
     }
 
     char cmdline[1536];
@@ -853,7 +860,7 @@ int multirom_save_status(struct multirom_status *s)
         return -1;
     }
 
-    multirom_fixup_rom_name(s->auto_boot_rom, auto_boot_name, "");
+    multirom_fixup_rom_name(s->auto_boot_rom, auto_boot_name, s->auto_boot_name);
     multirom_fixup_rom_name(s->current_rom, current_name, INTERNAL_ROM_NAME);
 
     fprintf(f, "current_rom=%s\n", current_name);
@@ -912,7 +919,7 @@ void multirom_dump_status(struct multirom_status *s)
     INFO("  hide_internal=%d\n", s->hide_internal);
     INFO("  int_display_name=%s\n", s->int_display_name ? s->int_display_name : "NULL");
     INFO("  auto_boot_seconds=%d\n", s->auto_boot_seconds);
-    INFO("  auto_boot_rom=%s\n", s->auto_boot_rom ? s->auto_boot_rom->name : "NULL");
+    INFO("  auto_boot_rom=%s\n", s->auto_boot_rom ? s->auto_boot_rom->name : s->auto_boot_name);
     INFO("  auto_boot_type=%d\n", s->auto_boot_type);
     INFO("  curr_rom_part=%s\n", s->curr_rom_part ? s->curr_rom_part : "NULL");
     INFO("  is_recovery_boot=%d\n", s->is_recovery_boot);
@@ -952,7 +959,7 @@ void multirom_find_usb_roms(struct multirom_status *s)
 {
     char auto_boot_name[MAX_ROM_NAME_LEN+1];
     char current_name[MAX_ROM_NAME_LEN+1];
-    multirom_fixup_rom_name(s->auto_boot_rom, auto_boot_name, "");
+    multirom_fixup_rom_name(s->auto_boot_rom, auto_boot_name, s->auto_boot_name);
     multirom_fixup_rom_name(s->current_rom, current_name, INTERNAL_ROM_NAME);
 
     // remove USB roms
@@ -982,7 +989,13 @@ void multirom_find_usb_roms(struct multirom_status *s)
          s->current_rom = multirom_get_internal(s);
 
     if (!s->auto_boot_rom)
+    {
         s->auto_boot_rom = multirom_get_internal(s);
+    }
+    else
+    {
+        strncpy(s->auto_boot_name, s->auto_boot_rom->name, MAX_ROM_NAME_LEN);
+    }
 
     multirom_dump_status(s);
 }
