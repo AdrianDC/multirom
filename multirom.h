@@ -70,6 +70,13 @@ enum
     AUTOBOOT_CHECK_KEYS      = 0x04,
 };
 
+enum
+{
+    RECOVERYBOOT_NONE        = 0x00,
+    RECOVERYBOOT_BOOT        = 0x01,
+    RECOVERYBOOT_SECONDARY   = 0x02,
+};
+
 struct usb_partition
 {
     char *name;
@@ -120,6 +127,7 @@ struct multirom_status
     char *curr_rom_part;
     struct fstab *fstab;
     struct rcadditions rc;
+    int is_recovery_boot;
 };
 
 int multirom(const char *rom_to_boot);

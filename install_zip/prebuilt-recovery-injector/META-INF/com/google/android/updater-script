@@ -1,0 +1,32 @@
+# Assert check for appropriate device is added during build,
+# see ../make_updater_script.sh and ../Android.mk
+
+show_progress(1.00000, 10);
+
+ui_print("Extracting binaries...");
+run_program("/sbin/busybox", "mount", "/data");
+
+package_extract_dir("scripts", "/tmp/");
+
+set_perm(0, 0, 0777, "/tmp/bbootimg");
+set_perm(0, 0, 0777, "/tmp/inject_recovery.sh");
+
+ui_print("Injecting recovery image...");
+assert(run_program("/tmp/inject_recovery.sh") == 0);
+
+ui_print("Cleaning up...");
+delete_recursive("/tmp/boot");
+delete("/tmp/bbootimg");
+delete("/tmp/bootimg.cfg");
+delete("/tmp/initrd.img");
+delete("/tmp/zImage");
+delete("/tmp/boot.img");
+delete("/tmp/dtb.img");
+delete("/tmp/second.img");
+delete("/tmp/newboot.img");
+delete("/tmp/inject_recovery.sh");
+delete("/tmp/recoverydev");
+delete("/tmp/rd_addr");
+delete("/tmp/use_mrom_fstab");
+
+ui_print("Installation complete!");

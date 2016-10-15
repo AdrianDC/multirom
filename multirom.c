@@ -66,6 +66,7 @@
 #define NTFS_BIN "ntfs-3g"
 #define EXFAT_BIN "exfat-fuse"
 #define INTERNAL_ROM_NAME "Internal"
+#define INTERNAL_RECOVERY_NAME "Recovery"
 #define MAX_ROM_NAME_LEN 26
 #define LAYOUT_VERSION "/data/.layout_version"
 
@@ -421,7 +422,9 @@ finish:
 #endif
     if (s.enable_kmsg_logging != 0)
         multirom_kmsg_logging(BACKUP_LATE_KLOG);
-    multirom_save_status(&s);
+    if (s.is_recovery_boot == RECOVERYBOOT_NONE) {
+        multirom_save_status(&s);
+    }
     multirom_free_status(&s);
 
     sync();
@@ -793,7 +796,32 @@ int multirom_load_status(struct multirom_status *s)
             ERROR("Could not find rom %s to auto-boot\n", auto_boot_rom);
     }
 
-    if(s->int_display_name)
+    char cmdline[1536];
+    if (multirom_get_bootloader_cmdline(s, cmdline, sizeof(cmdline)-1) == -1)
+    {
+        ERROR("Failed to get cmdline\n");
+    }
+
+    s->is_recovery_boot = RECOVERYBOOT_NONE;
+    if (strstr(cmdline, " recovery.kernel=1"))
+    {
+        s->current_rom = multirom_get_internal(s);
+        s->current_rom->name = realloc(s->current_rom->name, strlen(INTERNAL_RECOVERY_NAME)+1);
+        strcpy(s->current_rom->name, INTERNAL_RECOVERY_NAME);
+        s->curr_rom_part = NULL;
+        s->hide_internal = 0;
+        s->is_recovery_boot = RECOVERYBOOT_BOOT;
+    }
+    else if (access("/twres/twrp", F_OK) >= 0)
+    {
+        INFO("By-passing Recovery MultiROM\n");
+        s->auto_boot_type |= AUTOBOOT_FORCE_CURRENT;
+        s->current_rom = multirom_get_internal(s);
+        s->curr_rom_part = NULL;
+        s->is_recovery_boot = RECOVERYBOOT_SECONDARY;
+        return 0;
+    }
+    else if (s->int_display_name)
     {
         struct multirom_rom *r = multirom_get_internal(s);
         r->name = realloc(r->name, strlen(s->int_display_name)+1);
@@ -887,6 +915,7 @@ void multirom_dump_status(struct multirom_status *s)
     INFO("  auto_boot_rom=%s\n", s->auto_boot_rom ? s->auto_boot_rom->name : "NULL");
     INFO("  auto_boot_type=%d\n", s->auto_boot_type);
     INFO("  curr_rom_part=%s\n", s->curr_rom_part ? s->curr_rom_part : "NULL");
+    INFO("  is_recovery_boot=%d\n", s->is_recovery_boot);
     INFO("\n");
 
     int i;

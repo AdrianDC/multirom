@@ -88,6 +88,26 @@ $(MULTIROM_ZIP_TARGET): multirom trampoline signapk bbootimg mrom_kexec_static m
 multirom_zip: $(MULTIROM_ZIP_TARGET)
 
 
+MULTIROM_RECOVERY_INJECTOR_ZIP := $(PRODUCT_OUT)/multirom_recovery_injector
+MULTIROM_RECOVERY_INJECTOR_DIR := $(PRODUCT_OUT)/multirom_recovery_injector
+
+$(MULTIROM_RECOVERY_INJECTOR_ZIP): signapk bbootimg
+	@echo ----- Making MultiROM Recovery ZIP installer ------
+	rm -rf $(MULTIROM_RECOVERY_INJECTOR_DIR)
+	mkdir -p $(MULTIROM_RECOVERY_INJECTOR_DIR)
+	cp -a $(install_zip_path)/prebuilt-recovery-injector/* $(MULTIROM_RECOVERY_INJECTOR_DIR)/
+
+	cp -a $(TARGET_OUT_OPTIONAL_EXECUTABLES)/bbootimg $(MULTIROM_RECOVERY_INJECTOR_DIR)/scripts/
+	$(install_zip_path)/extract_recovery_dev.sh $(PWD)/$(MR_FSTAB) $(MULTIROM_RECOVERY_INJECTOR_DIR)/scripts/recoverydev
+	$(install_zip_path)/make_updater_script.sh "$(MR_DEVICES)" $(MULTIROM_RECOVERY_INJECTOR_DIR)/META-INF/com/google/android "Injecting MultiROM inside Recovery for"
+	rm -f $(MULTIROM_RECOVERY_INJECTOR_ZIP).zip $(MULTIROM_RECOVERY_INJECTOR_ZIP)-unsigned.zip
+	cd $(MULTIROM_RECOVERY_INJECTOR_DIR) && zip -qr ../$(notdir $@)-unsigned.zip *
+	java -jar $(HOST_OUT_JAVA_LIBRARIES)/signapk.jar $(DEFAULT_SYSTEM_DEV_CERTIFICATE).x509.pem $(DEFAULT_SYSTEM_DEV_CERTIFICATE).pk8 $(MULTIROM_RECOVERY_INJECTOR_ZIP)-unsigned.zip $(MULTIROM_RECOVERY_INJECTOR_ZIP).zip
+	@echo ----- Made MultiROM Recovery ZIP installer -------- $@.zip
+
+.PHONY: multirom_recovery_injector_zip
+multirom_recovery_injector_zip: $(MULTIROM_RECOVERY_INJECTOR_ZIP)
+
 
 MULTIROM_UNINST_TARGET := $(PRODUCT_OUT)/multirom_uninstaller
 MULTIROM_UNINST_DIR := $(PRODUCT_OUT)/multirom_uninstaller
