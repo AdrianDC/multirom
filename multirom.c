@@ -2434,11 +2434,12 @@ int multirom_fill_kexec_linux(struct multirom_status *s, struct multirom_rom *ro
         str = find_boot_file("%r/dtb.img", root_path, rom->base_path);
     }
 
-    if(!str)
+    if(!str) {
         printf("DTB: no dtb image found!");
 #ifdef MR_NOT_64BIT
         kexec_add_arg(kexec, "--dtb");
 #endif
+    }
     else
     {
         kexec_add_arg_prefix(kexec, "--dtb=", str);
