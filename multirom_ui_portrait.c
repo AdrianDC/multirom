@@ -238,6 +238,7 @@ static void tab_misc_init(multirom_theme_data *t, tab_data_misc *d, int color_sc
     text->y = fb_height - text->h;
     list_add(&d->ui_elements, text);
 
+    usleep(SLEEP_TIME);
     text = fb_add_text(0, 0, C_TEXT_SECONDARY, SIZE_SMALL, "Battery: %d%%", multirom_get_battery());
     text->x = fb_width - text->w - 5*DPI_MUL;
     text->y = fb_height - text->h;

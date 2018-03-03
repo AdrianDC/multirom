@@ -22,6 +22,8 @@
 #include "lib/input.h"
 #include "lib/listview.h"
 
+#define SLEEP_TIME 100000 //0.1 seconds
+
 enum
 {
     TAB_INTERNAL = 0,
